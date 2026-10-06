@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>My World Journey</title>
+
+<!-- Leaflet -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:#f2f5f7;
+  color:#111827;
+}
+
+.container{
+  width:100%;
+  max-width:900px;
+  margin:auto;
+  padding:18px;
+}
+
+.header{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.header h1{
+  margin:5px 0;
+  font-size:30px;
+  font-weight:800;
+  letter-spacing:-1px;
+}
+
+.header p{
+  margin:0;
+  color:#6b7280;
+}
+
+.card{
+  background:white;
+  border-radius:22px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 8px 30px rgba(0,0,0,.07);
+}
+
+.profile{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.profile img{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #16a34a;
+  background:#e5e7eb;
+}
+
+.profile-info{
+  flex:1;
+}
+
+.profile-info input{
+  width:100%;
+  border:0;
+  outline:0;
+  font-size:23px;
+  font-weight:750;
+  padding:4px 0;
+}
+
+.profile-info small{
+  color:#6b7280;
+}
+
+.upload{
+  margin-top:8px;
+  font-size:13px;
+}
+
+input[type="file"]{
+  width:100%;
+}
+
+.search{
+  width:100%;
+  padding:14px 16px;
+  border:1px solid #d1d5db;
+  border-radius:13px;
+  font-size:16px;
+  outline:none;
+}
+
+.search:focus{
+  border-color:#16a34a;
+}
+
+.country-list{
+  max-height:260px;
+  overflow-y:auto;
+  margin-top:10px;
+  border:1px solid #e5e7eb;
+  border-radius:13px;
+}
+
+.country-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 14px;
+  border-bottom:1px solid #f0f0f0;
+  cursor:pointer;
+}
+
+.country-item:last-child{
+  border-bottom:0;
+}
+
+.country-item:hover{
+  background:#f7faf8;
+}
+
+.country-item.selected{
+  background:#dcfce7;
+  color:#166534;
+  font-weight:700;
+}
+
+.tick{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  border:1px solid #d1d5db;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:14px;
+}
+
+.selected .tick{
+  background:#16a34a;
+  color:white;
+  border-color:#16a34a;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:15px;
+}
+
+.stat{
+  background:#f5f7f8;
+  border-radius:15px;
+  padding:15px;
+  text-align:center;
+}
+
+.stat strong{
+  display:block;
+  font-size:25px;
+  margin-bottom:3px;
+}
+
+.stat span{
+  color:#6b7280;
+  font-size:13px;
+}
+
+#map{
+  width:100%;
+  height:430px;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+}
+
+.map-help{
+  margin-top:9px;
+  color:#6b7280;
+  font-size:13px;
+  text-align:center;
+}
+
+.continents{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:15px;
+}
+
+.continent{
+  background:#f5f7f8;
+  border-radius:13px;
+  padding:13px;
+}
+
+.continent-title{
+  font-weight:700;
+  margin-bottom:5px;
+}
+
+.continent-percent{
+  font-size:20px;
+  font-weight:800;
+  color:#16a34a;
+}
+
+button{
+  width:100%;
+  border:0;
+  padding:15px;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:750;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.download{
+  background:#111827;
+  color:white;
+}
+
+.clear{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.footer{
+  text-align:center;
+  color:#9ca3af;
+  font-size:12px;
+  padding:10px 0 25px;
+}
+
+.leaflet-control-attribution{
+  font-size:8px!important;
+}
+
+@media(max-width:500px){
+
+  .container{
+    padding:12px;
+  }
+
+  .header h1{
+    font-size:26px;
+  }
+
+  #map{
+    height:330px;
+  }
+
+  .profile img{
+    width:70px;
+    height:70px;
+  }
+
+  .profile-info input{
+    font-size:19px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🌍 My World Journey</h1>
+    <p>Create your personal world travel map</p>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="card" id="travelCard">
+
+    <div class="profile">
+
+      <img
+        id="profileImage"
+        src="https://via.placeholder.com/150"
+        alt="Profile"
+      >
+
+      <div class="profile-info">
+
+        <input
+          id="travellerName"
+          type="text"
+          placeholder="Your name"
+          value=""
+        >
+
+        <small>World Traveller</small>
+
+        <div class="upload">
+          <input
+            type="file"
+            id="photoInput"
+            accept="image/*"
+          >
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- MAIN STATS -->
+
+    <div class="stats">
+
+      <div class="stat">
+        <strong id="countryCount">0</strong>
+        <span>Countries Visited</span>
+      </div>
+
+      <div class="stat">
+        <strong id="worldPercent">0%</strong>
+        <span>World Travel</span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- COUNTRY SELECTOR -->
+
+  <div class="card">
+
+    <h2>🌎 Select Countries</h2>
+
+    <input
+      class="search"
+      id="countrySearch"
+      type="text"
+      placeholder="🔍 Search country..."
+    >
+
+    <div
+      class="country-list"
+      id="countryList"
+    ></div>
+
+  </div>
+
+
+  <!-- MAP -->
+
+  <div class="card">
+
+    <h2>🗺️ Your World Map</h2>
+
+    <div id="map"></div>
+
+    <div class="map-help">
+      Green = Visited • White = Not visited
+    </div>
+
+  </div>
+
+
+  <!-- CONTINENTS -->
+
+  <div class="card">
+
+    <h2>🌍 Continent Progress</h2>
+
+    <div class="continents">
+
+      <div class="continent">
+        <div class="continent-title">Asia</div>
+        <div class="continent-percent" id="asiaPercent">0%</div>
+      </div>
+
+      <div class="continent">
+        <div class="continent-title">Europe</div>
+        <div class="continent-percent" id="europePercent">0%</div>
+      </div>
+
+      <div class="continent">
+        <div class="continent-title">Africa</div>
+        <div class="continent-percent" id="africaPercent">0%</div>
+      </div>
+
+      <div class="continent">
+        <div class="continent-title">North America</div>
+        <div class="continent-percent" id="northAmericaPercent">0%</div>
+      </div>
+
+      <div class="continent">
+        <div class="continent-title">South America</div>
+        <div class="continent-percent" id="southAmericaPercent">0%</div>
+      </div>
+
+      <div class="continent">
+        <div class="continent-title">Oceania</div>
+        <div class="continent-percent" id="oceaniaPercent">0%</div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DOWNLOAD -->
+
+  <div class="card">
+
+    <h2>📸 Save Your Travel Map</h2>
+
+    <p style="color:#6b7280;font-size:14px;">
+      Download your profile, statistics and world map as an image.
+    </p>
+
+    <button
+      class="download"
+      onclick="downloadTravelCard()"
+    >
+      📥 Download My Travel Map
+    </button>
+
+    <button
+      class="clear"
+      onclick="clearAll()"
+    >
+      Reset Everything
+    </button>
+
+  </div>
+
+
+  <div class="footer">
+    My World Journey • Travel the world 🌍
+  </div>
+
+</div>
+
+
+<!-- LIBRARIES -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+
+<script>
+
+const TOTAL_WORLD_COUNTRIES = 195;
+
+
+/* ---------------------------------------
+   CONTINENT TOTALS
+--------------------------------------- */
+
+const continentTotals = {
+  Asia: 48,
+  Europe: 44,
+  Africa: 54,
+  "North America": 23,
+  "South America": 12,
+  Oceania: 14
+};
+
+
+/* ---------------------------------------
+   COUNTRY DATA
+--------------------------------------- */
+
+let countries = [];
+let selectedCountries = new Set();
+
+let map;
+let geoLayer;
+
+
+/* ---------------------------------------
+   PROFILE PHOTO
+--------------------------------------- */
+
+document
+.getElementById("photoInput")
+.addEventListener("change", function(e){
+
+  const file = e.target.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+
+    document
+    .getElementById("profileImage")
+    .src = event.target.result;
+
+  };
+
+  reader.readAsDataURL(file);
+
+});
+
+
+/* ---------------------------------------
+   MAP
+--------------------------------------- */
+
+map = L.map("map", {
+  zoomControl:true,
+  attributionControl:true,
+  minZoom:1,
+  maxZoom:5
+}).setView([20,0],1.4);
+
+
+/* ---------------------------------------
+   LOAD COUNTRY DATA
+--------------------------------------- */
+
+async function loadCountries(){
+
+  try{
+
+    /*
+      Country geometry
+      Natural Earth based GeoJSON
+    */
+
+    const geoResponse = await fetch(
+      "https://raw.githubusercontent.com/datasets/geo-countries/main/data/countries.geojson"
+    );
+
+    const geoData = await geoResponse.json();
+
+
+    /*
+      Country information
+    */
+
+    const infoResponse = await fetch(
+      "https://cdn.jsdelivr.net/npm/world-countries@5.1.0/countries.json"
+    );
+
+    const infoData = await infoResponse.json();
+
+
+    /*
+      Build country information map
+    */
+
+    const infoByISO = {};
+
+    infoData.forEach(c => {
+
+      if(c.cca3){
+
+        infoByISO[c.cca3] = c;
+
+      }
+
+    });
+
+
+    /*
+      Match geometry + country information
+    */
+
+    countries = geoData.features
+    .map(feature => {
+
+      const props = feature.properties || {};
+
+      const iso =
+        props["ISO3166-1-Alpha-3"] ||
+        props.iso_a3 ||
+        props.ISO_A3 ||
+        props.ADM0_A3;
+
+      const info = infoByISO[iso];
+
+      if(!info) return null;
+
+      return {
+
+        name: info.name.common,
+
+        iso: info.cca3,
+
+        continent:
+          info.region === "Americas"
+            ? (
+                info.subregion === "South America"
+                  ? "South America"
+                  : "North America"
+              )
+            : info.region,
+
+        feature:feature
+
+      };
+
+    })
+    .filter(Boolean);
+
+
+    /*
+      Remove duplicate country names
+    */
+
+    const unique = {};
+
+    countries.forEach(c => {
+
+      unique[c.iso] = c;
+
+    });
+
+    countries = Object.values(unique);
+
+
+    /*
+      Draw map
+    */
+
+    geoLayer = L.geoJSON(
+      geoData,
+      {
+        style:{
+
+          fillColor:"#ffffff",
+
+          fillOpacity:1,
+
+          color:"#9ca3af",
+
+          weight:.6
+
+        },
+
+        onEachFeature:function(feature, layer){
+
+          const props = feature.properties || {};
+
+          const iso =
+            props["ISO3166-1-Alpha-3"] ||
+            props.iso_a3 ||
+            props.ISO_A3 ||
+            props.ADM0_A3;
+
+          const country =
+            countries.find(c => c.iso === iso);
+
+          if(!country) return;
+
+
+          layer.bindTooltip(
+            country.name,
+            {
+              sticky:true
+            }
+          );
+
+
+          layer.on("click",function(){
+
+            toggleCountry(country.iso);
+
+          });
+
+        }
+
+      }
+    ).addTo(map);
+
+
+    renderCountryList();
+
+    updateMap();
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+    document.getElementById("countryList").innerHTML =
+      "<div style='padding:15px;color:#b91c1c'>Country data could not be loaded. Please refresh the page.</div>";
+
+  }
+
+}
+
+
+/* ---------------------------------------
+   COUNTRY LIST
+--------------------------------------- */
+
+function renderCountryList(){
+
+  const search =
+    document
+    .getElementById("countrySearch")
+    .value
+    .toLowerCase()
+    .trim();
+
+
+  const list =
+    document.getElementById("countryList");
+
+
+  const filtered =
+    countries
+    .filter(c =>
+      c.name
+      .toLowerCase()
+      .includes(search)
+    )
+    .sort((a,b) =>
+      a.name.localeCompare(b.name)
+    );
+
+
+  list.innerHTML = "";
+
+
+  filtered.forEach(country => {
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "country-item " +
+      (
+        selectedCountries.has(country.iso)
+        ? "selected"
+        : ""
+      );
+
+
+    div.innerHTML = `
+
+      <span>${country.name}</span>
+
+      <span class="tick">
+        ${
+          selectedCountries.has(country.iso)
+          ? "✓"
+          : ""
+        }
+      </span>
+
+    `;
+
+
+    div.addEventListener(
+      "click",
+      function(){
+
+        toggleCountry(country.iso);
+
+      }
+    );
+
+
+    list.appendChild(div);
+
+  });
+
+}
+
+
+/* ---------------------------------------
+   SEARCH
+--------------------------------------- */
+
+document
+.getElementById("countrySearch")
+.addEventListener(
+  "input",
+  renderCountryList
+);
+
+
+/* ---------------------------------------
+   TOGGLE COUNTRY
+--------------------------------------- */
+
+function toggleCountry(iso){
+
+  if(selectedCountries.has(iso)){
+
+    selectedCountries.delete(iso);
+
+  }else{
+
+    selectedCountries.add(iso);
+
+  }
+
+
+  updateMap();
+
+  renderCountryList();
+
+}
+
+
+/* ---------------------------------------
+   UPDATE MAP
+--------------------------------------- */
+
+function updateMap(){
+
+  if(!geoLayer) return;
+
+
+  geoLayer.eachLayer(layer => {
+
+    const props =
+      layer.feature.properties || {};
+
+
+    const iso =
+      props["ISO3166-1-Alpha-3"] ||
+      props.iso_a3 ||
+      props.ISO_A3 ||
+      props.ADM0_A3;
+
+
+    if(selectedCountries.has(iso)){
+
+      layer.setStyle({
+
+        fillColor:"#16a34a",
+
+        fillOpacity:1,
+
+        color:"#ffffff",
+
+        weight:.7
+
+      });
+
+    }else{
+
+      layer.setStyle({
+
+        fillColor:"#ffffff",
+
+        fillOpacity:1,
+
+        color:"#9ca3af",
+
+        weight:.6
+
+      });
+
+    }
+
+  });
+
+
+  updateStats();
+
+}
+
+
+/* ---------------------------------------
+   STATISTICS
+--------------------------------------- */
+
+function updateStats(){
+
+  const count =
+    selectedCountries.size;
+
+
+  const worldPercent =
+    (count / TOTAL_WORLD_COUNTRIES) * 100;
+
+
+  document
+  .getElementById("countryCount")
+  .textContent = count;
+
+
+  document
+  .getElementById("worldPercent")
+  .textContent =
+    worldPercent.toFixed(2) + "%";
+
+
+  updateContinent(
+    "Asia",
+    "asiaPercent"
+  );
+
+  updateContinent(
+    "Europe",
+    "europePercent"
+  );
+
+  updateContinent(
+    "Africa",
+    "africaPercent"
+  );
+
+  updateContinent(
+    "North America",
+    "northAmericaPercent"
+  );
+
+  updateContinent(
+    "South America",
+    "southAmericaPercent"
+  );
+
+  updateContinent(
+    "Oceania",
+    "oceaniaPercent"
+  );
+
+}
+
+
+/* ---------------------------------------
+   CONTINENT %
+--------------------------------------- */
+
+function updateContinent(
+  continent,
+  elementId
+){
+
+  let visited = 0;
+
+
+  selectedCountries.forEach(iso => {
+
+    const country =
+      countries.find(c =>
+        c.iso === iso
+      );
+
+
+    if(
+      country &&
+      country.continent === continent
+    ){
+
+      visited++;
+
+    }
+
+  });
+
+
+  const total =
+    continentTotals[continent] || 1;
+
+
+  const percent =
+    (visited / total) * 100;
+
+
+  document
+  .getElementById(elementId)
+  .textContent =
+    percent.toFixed(1) + "%";
+
+}
+
+
+/* ---------------------------------------
+   DOWNLOAD
+--------------------------------------- */
+
+async function downloadTravelCard(){
+
+  const name =
+    document
+    .getElementById("travellerName")
+    .value
+    .trim();
+
+
+  if(!name){
+
+    alert("Please enter your name first.");
+
+    return;
+
+  }
+
+
+  const card =
+    document.getElementById("travelCard");
+
+
+  const button =
+    document.querySelector(".download");
+
+
+  button.textContent =
+    "Creating image...";
+
+
+  try{
+
+    const canvas =
+      await html2canvas(
+        card,
+        {
+          scale:2,
+          useCORS:true,
+          backgroundColor:"#ffffff"
+        }
+      );
+
+
+    const link =
+      document.createElement("a");
+
+
+    link.download =
+      name.replace(/\s+/g,"-")
+      + "-world-travel-map.png";
+
+
+    link.href =
+      canvas.toDataURL(
+        "image/png"
+      );
+
+
+    link.click();
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+    alert(
+      "Could not create image. Please try again."
+    );
+
+  }
+
+
+  button.textContent =
+    "📥 Download My Travel Map";
+
+}
+
+
+/* ---------------------------------------
+   RESET
+--------------------------------------- */
+
+function clearAll(){
+
+  if(
+    !confirm(
+      "Are you sure you want to reset everything?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  selectedCountries.clear();
+
+
+  document
+  .getElementById("travellerName")
+  .value = "";
+
+
+  document
+  .getElementById("profileImage")
+  .src =
+    "https://via.placeholder.com/150";
+
+
+  document
+  .getElementById("photoInput")
+  .value = "";
+
+
+  updateMap();
+
+  renderCountryList();
+
+}
+
+
+/* ---------------------------------------
+   START
+--------------------------------------- */
+
+loadCountries();
+
+</script>
+
+</body>
+</html>
